@@ -33,24 +33,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: FutureBuilder<String?>(
-          future: _tasaFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Text("Cargando...");
-            } else if (snapshot.hasError) {
-              return const Text("Error al cargar");
-            } else {
-              return Text(
-                "Dollar X  Tasa: ${snapshot.data ?? 'N/A'}",
-                style: const TextStyle(color: Colors.white),
-              );
-            }
-          },
-        ),
-        backgroundColor: AppColors.primary,
-      ),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: tasaAppBar(), backgroundColor: AppColors.secondary),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -59,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppColors.neutral,
+              color: AppColors.secondary,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Padding(
@@ -99,7 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           final parsed = double.tryParse(value);
                           if (parsed != null) {
                             _controller.setDollarValue(
-                                parsed / _controller.dollar);
+                              parsed / _controller.dollar,
+                            );
                           }
                         }
                       });
@@ -112,6 +97,24 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  FutureBuilder<String?> tasaAppBar() {
+    return FutureBuilder<String?>(
+      future: _tasaFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text("Cargando...");
+        } else if (snapshot.hasError) {
+          return const Text("Error al cargar");
+        } else {
+          return Text(
+            "Dollar X  Tasa: ${snapshot.data ?? 'N/A'}",
+            style: const TextStyle(color: Colors.white),
+          );
+        }
+      },
     );
   }
 }
