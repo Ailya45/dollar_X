@@ -3,6 +3,7 @@ import 'package:dollar_x_app/presentation/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
@@ -52,6 +53,7 @@ class MainApp extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
+          //comentario de prueba
           bodyLarge: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
