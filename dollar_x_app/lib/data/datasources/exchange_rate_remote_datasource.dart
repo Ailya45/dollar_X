@@ -1,24 +1,21 @@
 import 'dart:convert';
-import 'package:http/io_client.dart';
 import 'dart:io';
+import 'package:http/io_client.dart';
 import 'package:html/parser.dart' as parser;
-import 'package:html/dom.dart';
 
-class ScrapperUtil {
-  static Future<double?> _fetchBcvRate(String selector) async {
+class ExchangeRateRemoteDataSource {
+  Future<double?> _fetchBcvRate(String selector) async {
     try {
-      final HttpClient httpClient = HttpClient()
+      final httpClient = HttpClient()
         ..badCertificateCallback =
             ((X509Certificate cert, String host, int port) => true);
-      final IOClient ioClient = IOClient(httpClient);
-
+      final ioClient = IOClient(httpClient);
       final response =
           await ioClient.get(Uri.parse('https://www.bcv.org.ve/'));
 
       if (response.statusCode == 200) {
-        Document document = parser.parse(response.body);
+        final document = parser.parse(response.body);
         final element = document.querySelector(selector);
-
         if (element != null) {
           String rateString = element.text.trim();
           rateString = rateString.replaceAll(',', '.');
@@ -27,24 +24,24 @@ class ScrapperUtil {
       }
       return null;
     } catch (e) {
-      print('Error fetching BCV rate ($selector): $e');
       return null;
     }
   }
 
-  static Future<double?> getDolarBcv() async {
+  Future<double?> getDollarRate() async {
     return _fetchBcvRate('#dolar strong');
   }
 
-  static Future<double?> getEuroBcv() async {
+  Future<double?> getEuroRate() async {
     return _fetchBcvRate('#euro strong');
   }
 
-  static Future<double?> getUsdtVes() async {
+  Future<double?> getUsdtRate() async {
     try {
       final client = HttpClient();
       final request = await client.postUrl(
-        Uri.parse('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'),
+        Uri.parse(
+            'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.headers.set('Accept', '*/*');
@@ -73,7 +70,6 @@ class ScrapperUtil {
       }
       return null;
     } catch (e) {
-      print('Error fetching USDT/VES from Binance P2P: $e');
       return null;
     }
   }

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_simple_calculator/flutter_simple_calculator.dart';
 
-class CalcButton extends StatefulWidget {
-  const CalcButton({Key? key}) : super(key: key);
+class CalculatorSheet extends StatefulWidget {
+  const CalculatorSheet({super.key});
 
   @override
-  CalcButtonState createState() => CalcButtonState();
+  State<CalculatorSheet> createState() => _CalculatorSheetState();
 }
 
-class CalcButtonState extends State<CalcButton> {
+class _CalculatorSheetState extends State<CalculatorSheet> {
   double? _currentValue = 0;
 
   @override

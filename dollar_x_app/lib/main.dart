@@ -1,15 +1,22 @@
-import 'package:dollar_x_app/presentation/Constants/colors.dart';
-import 'package:dollar_x_app/presentation/screens/home.dart';
+import 'package:dollar_x_app/data/database/app_database.dart';
+import 'package:dollar_x_app/presentation/constants/colors.dart';
+import 'package:dollar_x_app/presentation/providers/repository_providers.dart';
+import 'package:dollar_x_app/presentation/screens/home_screen.dart';
+import 'package:dollar_x_app/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa la base de datos Drift
+  final db = await AppDatabase.create();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
-    SystemChrome.setSystemUIOverlayStyle(
+  SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
@@ -17,7 +24,16 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const MainApp());
+
+  runApp(
+    // Inyecta la base de datos en el ‡rbol de providers
+    ProviderScope(
+      overrides: [
+        appDatabaseProvider.overrideWithValue(db),
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -28,47 +44,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'Dollar X',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: AppColors.primary,
-        scaffoldBackgroundColor: Colors.transparent,
-        fontFamily: 'Roboto',
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-          headlineMedium: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-          ),
-          titleLarge: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-          titleMedium: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-          //comentario de prueba
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-          labelLarge: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ),
+      theme: AppTheme.darkTheme,
       home: const HomeScreen(),
     );
   }

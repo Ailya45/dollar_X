@@ -1,4 +1,4 @@
-import 'package:dollar_x_app/presentation/Constants/colors.dart';
+import 'package:dollar_x_app/presentation/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class CurrencyTextField extends StatelessWidget {
