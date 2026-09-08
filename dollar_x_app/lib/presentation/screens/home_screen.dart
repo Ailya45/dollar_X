@@ -260,42 +260,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         child: Column(
           children: [
             const DateNavigationBar(),
-            const Spacer(flex: 1),
             Expanded(
-              flex: 7,
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: SlideTransition(
-                  position: _slideAnim,
-                  child: ConversionCard(
-                    selectedCurrency: ref.watch(selectedCurrencyProvider),
-                    dollarController: _dollarController,
-                    bsController: _bsController,
-                    dollarError: _getDollarError(),
-                    bsError: _getBsError(),
-                    onDollarChanged: (value) {
-                      _validatorsUSD(value);
-                      _convertFrom();
-                    },
-                    onBsChanged: (value) {
-                      _validatorsBS(value);
-                      _convertTo();
-                    },
-                    onSwap: _swapFields,
-                    onCurrencyChanged: (type) {
-                      ref.read(selectedCurrencyProvider.notifier).state = type;
-                    },
-                    onCopyDollar: (ctx) =>
-                        ClipboardProvider.copy(ctx, _dollarController.text),
-                    onCopyBs: (ctx) =>
-                        ClipboardProvider.copy(ctx, _bsController.text),
-                  ),
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.only(top: 8, bottom: 16),
+                child: Column(
+                  children: [
+                    FadeTransition(
+                      opacity: _fadeAnim,
+                      child: SlideTransition(
+                        position: _slideAnim,
+                        child: ConversionCard(
+                          selectedCurrency: ref.watch(selectedCurrencyProvider),
+                          dollarController: _dollarController,
+                          bsController: _bsController,
+                          dollarError: _getDollarError(),
+                          bsError: _getBsError(),
+                          onDollarChanged: (value) {
+                            _validatorsUSD(value);
+                            _convertFrom();
+                          },
+                          onBsChanged: (value) {
+                            _validatorsBS(value);
+                            _convertTo();
+                          },
+                          onSwap: _swapFields,
+                          onCurrencyChanged: (type) {
+                            ref.read(selectedCurrencyProvider.notifier).state = type;
+                          },
+                          onCopyDollar: (ctx) =>
+                              ClipboardProvider.copy(ctx, _dollarController.text),
+                          onCopyBs: (ctx) =>
+                              ClipboardProvider.copy(ctx, _bsController.text),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const RateChangeIndicator(),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            const RateChangeIndicator(),
-            const Spacer(flex: 1),
             ActionButtons(
               onCalculator: _openCalculator,
               onRefresh: _refreshRates,

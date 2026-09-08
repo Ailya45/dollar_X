@@ -1,3 +1,4 @@
+import 'package:dollar_x_app/core/utils/business_day.dart';
 import 'package:dollar_x_app/presentation/constants/colors.dart';
 import 'package:dollar_x_app/presentation/providers/rates_provider.dart';
 import 'package:dollar_x_app/presentation/providers/ui_state_providers.dart';
@@ -12,7 +13,6 @@ class DateNavigationBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
     final hasPrev = ref.watch(hasPreviousDateProvider);
-    final hasNext = ref.watch(hasNextDateProvider);
     final today = DateTime.now();
     final isToday = isSameDay(selectedDate, today);
 
@@ -39,7 +39,7 @@ class DateNavigationBar extends ConsumerWidget {
           const SizedBox(width: 8),
           _ArrowButton(
             icon: Icons.chevron_right_rounded,
-            enabled: (hasNext.valueOrNull ?? false) && !isToday,
+            enabled: !isToday,
             onTap: () => ref
                 .read(selectedDateProvider.notifier)
                 .state = selectedDate.add(const Duration(days: 1)),

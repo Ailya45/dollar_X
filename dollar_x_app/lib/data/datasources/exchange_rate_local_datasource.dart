@@ -1,3 +1,4 @@
+import 'package:dollar_x_app/core/utils/business_day.dart';
 import 'package:dollar_x_app/data/database/app_database.dart';
 import 'package:dollar_x_app/domain/entities/currency_type.dart';
 import 'package:drift/drift.dart';
@@ -8,9 +9,10 @@ class ExchangeRateLocalDataSource {
 
   ExchangeRateLocalDataSource(this.db);
 
-  /// Obtiene las tasas guardadas para una fecha.
-  Future<Map<CurrencyType, double>?> getRatesForDate(DateTime date) async {
-    final record = await db.getRatesByDate(date);
+  /// Obtiene la tasa "vigente" para una fecha: la ltima publicada en un
+  /// d¡a h bil <= [date]. Para fines de semana devuelve el viernes.
+  Future<Map<CurrencyType, double>?> getRatesAsOf(DateTime date) async {
+    final record = await db.getLatestRateOnOrBefore(date);
     if (record == null) return null;
     return {
       CurrencyType.usd: record.usdRate,
@@ -19,9 +21,11 @@ class ExchangeRateLocalDataSource {
     };
   }
 
-  /// Guarda las tasas para una fecha (upsert).
+  /// Guarda las tasas bajo el d¡a h bil correspondiente a [date]
+  /// (el s bado/domingo se guarda bajo el viernes). Usa upsert.
   Future<void> saveRates(Map<CurrencyType, double> rates, DateTime date) async {
-    final formatted = _formatDate(date);
+    final effective = getEffectiveRateDate(date);
+    final formatted = formatSqlDate(effective);
     final now = DateTime.now().toIso8601String();
     await db.upsertRates(ExchangeRatesCompanion(
       date: Value(formatted),
@@ -32,20 +36,14 @@ class ExchangeRateLocalDataSource {
     ));
   }
 
-  /// Fecha anterior con registros.
+  /// Fecha h bil anterior con registros.
   Future<DateTime?> getPreviousDateWithRates(DateTime date) =>
       db.getPreviousDateWithRates(date);
 
-  /// Fecha posterior con registros.
+  /// Fecha h bil posterior con registros.
   Future<DateTime?> getNextDateWithRates(DateTime date) =>
       db.getNextDateWithRates(date);
 
   /// Todas las fechas con registros.
   Future<List<DateTime>> getAllDates() => db.getAllDates();
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
-  }
 }

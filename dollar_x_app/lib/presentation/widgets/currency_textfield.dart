@@ -45,6 +45,7 @@ class CurrencyTextField extends StatelessWidget {
             onChanged: onChanged,
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),
+            scrollPadding: const EdgeInsets.only(bottom: 40),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,

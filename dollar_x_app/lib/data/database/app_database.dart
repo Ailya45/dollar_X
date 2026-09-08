@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dollar_x_app/core/utils/business_day.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
@@ -44,11 +45,16 @@ class AppDatabase extends _$AppDatabase {
   // Consultas
   // ---------------------------------------------------------------------------
 
-  /// Obtiene el registro de tasas para una fecha, o null si no existe.
-  Future<ExchangeRate?> getRatesByDate(DateTime date) {
-    final formatted = _formatDate(date);
+  /// Obtiene la tasa "vigente" para una fecha: la ltima publicada
+  /// en un d¡a h bil <= [date]. Como el BCV s¢lo publica de lunes a
+  /// viernes, el s bado y domingo devuelven el precio del viernes.
+  Future<ExchangeRate?> getLatestRateOnOrBefore(DateTime date) {
+    final effective = getEffectiveRateDate(date);
+    final formatted = formatSqlDate(effective);
     return (select(exchangeRates)
-          ..where((t) => t.date.equals(formatted)))
+          ..where((t) => t.date.isSmallerOrEqualValue(formatted))
+          ..orderBy([(t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)])
+          ..limit(1))
         .getSingleOrNull();
   }
 
@@ -57,28 +63,30 @@ class AppDatabase extends _$AppDatabase {
     return into(exchangeRates).insertOnConflictUpdate(rates);
   }
 
-  /// Obtiene la fecha anterior m s cercana que tenga registros.
+  /// Obtiene la fecha h bil anterior que tenga registros, o null si no existe.
   Future<DateTime?> getPreviousDateWithRates(DateTime date) async {
-    final formatted = _formatDate(date);
+    final effective = getEffectiveRateDate(date);
+    final formatted = formatSqlDate(effective);
     final row = await (select(exchangeRates)
           ..where((t) => t.date.isSmallerThanValue(formatted))
           ..orderBy([(t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)])
           ..limit(1))
         .getSingleOrNull();
     if (row == null) return null;
-    return DateTime.tryParse(row.date);
+    return parseSqlDate(row.date);
   }
 
-  /// Obtiene la fecha posterior m s cercana que tenga registros.
+  /// Obtiene la fecha h bil posterior que tenga registros, o null si no existe.
   Future<DateTime?> getNextDateWithRates(DateTime date) async {
-    final formatted = _formatDate(date);
+    final effective = getEffectiveRateDate(date);
+    final formatted = formatSqlDate(effective);
     final row = await (select(exchangeRates)
           ..where((t) => t.date.isBiggerThanValue(formatted))
           ..orderBy([(t) => OrderingTerm(expression: t.date, mode: OrderingMode.asc)])
           ..limit(1))
         .getSingleOrNull();
     if (row == null) return null;
-    return DateTime.tryParse(row.date);
+    return parseSqlDate(row.date);
   }
 
   /// Obtiene todas las fechas con registros, ordenadas descendente.
@@ -87,15 +95,8 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)])
         ).get();
     return rows
-        .map((r) => DateTime.tryParse(r.date))
+        .map((r) => parseSqlDate(r.date))
         .whereType<DateTime>()
         .toList();
-  }
-
-  /// Formatea una fecha como YYYY-MM-DD.
-  String _formatDate(DateTime date) {
-    return '${date.year}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
   }
 }

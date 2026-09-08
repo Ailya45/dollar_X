@@ -35,8 +35,8 @@ class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
       localDataSource.saveRates(rates, date);
 
   @override
-  Future<Map<CurrencyType, double>?> getRatesForDate(DateTime date) =>
-      localDataSource.getRatesForDate(date);
+  Future<Map<CurrencyType, double>?> getRatesAsOf(DateTime date) =>
+      localDataSource.getRatesAsOf(date);
 
   @override
   Future<DateTime?> getPreviousDateWithRates(DateTime date) =>

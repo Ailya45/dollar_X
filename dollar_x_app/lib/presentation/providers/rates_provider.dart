@@ -1,3 +1,4 @@
+import 'package:dollar_x_app/core/utils/business_day.dart';
 import 'package:dollar_x_app/domain/entities/currency_type.dart';
 import 'package:dollar_x_app/presentation/providers/repository_providers.dart';
 import 'package:dollar_x_app/presentation/providers/ui_state_providers.dart';
@@ -14,11 +15,13 @@ final currentRatesProvider = FutureProvider<Map<CurrencyType, double>>((ref) asy
   return useCase.execute();
 });
 
-/// Carga las tasas guardadas en la base de datos local para una fecha concreta.
-final historicalRatesProvider = FutureProvider.family<Map<CurrencyType, double>?, DateTime>(
+/// Carga la tasa "vigente" (ltima publicada => a la fecha) desde la base
+/// de datos local. Devuelve null si no hay ninguno registro.
+final historicalRatesProvider =
+    FutureProvider.family<Map<CurrencyType, double>?, DateTime>(
   (ref, date) async {
     final repository = ref.watch(exchangeRateRepositoryProvider);
-    return repository.getRatesForDate(date);
+    return repository.getRatesAsOf(date);
   },
 );
 
@@ -35,24 +38,11 @@ final displayRatesProvider = FutureProvider<Map<CurrencyType, double>?>((ref) as
   return ref.watch(historicalRatesProvider(selectedDate)).valueOrNull;
 });
 
-/// Indica si existe un registro para la fecha anterior a la seleccionada.
+/// Indica si existe un registro en un d¡a h bil anterior a la fecha seleccionada.
+/// Se usa para habilitar la flecha de retroceso.
 final hasPreviousDateProvider = FutureProvider<bool>((ref) async {
   final selectedDate = ref.watch(selectedDateProvider);
   final repository = ref.watch(exchangeRateRepositoryProvider);
   final prev = await repository.getPreviousDateWithRates(selectedDate);
   return prev != null;
 });
-
-/// Indica si existe un registro para la fecha posterior a la seleccionada.
-final hasNextDateProvider = FutureProvider<bool>((ref) async {
-  final selectedDate = ref.watch(selectedDateProvider);
-  final repository = ref.watch(exchangeRateRepositoryProvider);
-  final next = await repository.getNextDateWithRates(selectedDate);
-  return next != null;
-});
-
-/// Indica si la fecha seleccionada es hoy.
-bool isSameDay(DateTime a, DateTime b) {
-  return a.year == b.year && a.month == b.month && a.day == b.day;
-}
-
